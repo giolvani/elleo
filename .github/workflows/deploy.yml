@@ -1,0 +1,43 @@
+name: Deploy to DigitalOcean
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.DO_SSH_KEY }}
+
+    - name: Deploy to DigitalOcean
+      env:
+        SERVER_IP: ${{ secrets.DO_SERVER_IP }}
+        NODE_ENV: production
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        FINE_TUNED_MODEL: ${{ secrets.FINE_TUNED_MODEL }}
+        DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+        HISTORY_FILE_PATH: ${{ secrets.HISTORY_FILE_PATH }}
+        DEFAULT_PROMPT_FILE_PATH: ${{ secrets.DEFAULT_PROMPT_FILE_PATH }}
+        GOOGLE_DOC_ID: ${{ secrets.GOOGLE_DOC_ID }}
+      run: |
+        ssh -o StrictHostKeyChecking=no root@$SERVER_IP << 'EOF'
+          cd /home/elleo/app
+          echo "NODE_ENV=${NODE_ENV}" > .env
+          echo "OPENAI_API_KEY=${OPENAI_API_KEY}" > .env
+          echo "FINE_TUNED_MODEL=${FINE_TUNED_MODEL}" >> .env
+          echo "DISCORD_TOKEN=${DISCORD_TOKEN}" >> .env
+          echo "HISTORY_FILE_PATH=${HISTORY_FILE_PATH}" >> .env
+          echo "DEFAULT_PROMPT_FILE_PATH=${DEFAULT_PROMPT_FILE_PATH}" >> .env
+          echo "GOOGLE_DOC_ID=${GOOGLE_DOC_ID}" >> .env
+          git pull origin main
+          docker-compose up -d --build
+        EOF
