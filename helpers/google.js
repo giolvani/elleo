@@ -5,8 +5,14 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 async function authorize() {
-  const CREDENTIALS_PATH = path.join(process.cwd(), process.env.GOOGLE_CREDENTIALS_FILE_PATH);
-  const credentials = JSON.parse(fs.readFileSync(CREDENTIALS_PATH));
+  let credentials;
+
+  if (process.env.NODE_ENV === 'production') {
+    credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+  } else {
+    const CREDENTIALS_PATH = path.join(process.cwd(), "config/elleo-cloud-project-0fb65ea0b691.json");
+    credentials = JSON.parse(fs.readFileSync(CREDENTIALS_PATH));
+  }
 
   const auth = new google.auth.GoogleAuth({
     credentials,
