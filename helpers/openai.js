@@ -27,7 +27,7 @@ export async function createThread(userId) {
 
       logger.info(`New thread created for user ${userId}: ${newThread.id}`);
 
-      userDatabase.updateUser(userId, { thread_id: newThread.id });
+      userDatabase.addUser(userId, { thread_id: newThread.id });
       threadId = newThread.id;
     }
     else {

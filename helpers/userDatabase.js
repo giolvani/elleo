@@ -19,7 +19,7 @@ await initializeDatabase();
 
 export class UserDatabase {
   async addUser(id, data) {
-    db.data.users.push({ id, thread_id: data.thread_id });
+    db.data.users.push({ id, ...data });
     await db.write();
   }
 
