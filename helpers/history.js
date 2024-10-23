@@ -1,54 +1,68 @@
 const fs = require('fs');
 const path = require('path');
+const logger = require("./logger");
+const { getSystemPrompt } = require("./prompt");
 const dotenv = require("dotenv");
 dotenv.config();
 
-const historyFilePath = path.join(process.cwd(), process.env.HISTORY_FILE_PATH);
-
-function loadHistory() {
-  if (!fs.existsSync(historyFilePath)) {
-    return {};
+class ChatHistory {
+  constructor() {
+    this.historyFilePath = path.join(process.cwd(), process.env.HISTORY_FILE_PATH);
+    this.history = this.loadHistory();
   }
-  const data = fs.readFileSync(historyFilePath);
-  return JSON.parse(data);
-}
 
-function saveHistory(history) {
-  fs.writeFileSync(historyFilePath, JSON.stringify(history, null, 2));
-}
-
-function getUserHistory(userId, systemPrompt) {
-  const history = loadHistory();
-  let isFirstInteraction = false;
-
-  if (!history[userId] || history[userId].length === 0) {
-    isFirstInteraction = true;
-    history[userId] = [{ role: 'system', content: systemPrompt }];
-    saveHistory(history);
+  loadHistory() {
+    if (!fs.existsSync(this.historyFilePath)) {
+      return {};
+    }
+    const data = fs.readFileSync(this.historyFilePath, 'utf-8');
+    if (!data) {
+      return {};
+    }
+    try {
+      return JSON.parse(data);
+    } catch (error) {
+      logger.error("Erro ao analisar o JSON: " + error);
+      return {};
+    }
   }
-  return { history: history[userId], isFirstInteraction };
-}
 
-function updateUserHistory(userId, userMessage, botResponse) {
-  const history = loadHistory();
-  if (!history[userId]) {
-    history[userId] = [];
+  saveHistory() {
+    fs.writeFileSync(this.historyFilePath, JSON.stringify(this.history, null, 2));
   }
-  history[userId].push({ role: 'user', content: userMessage });
-  history[userId].push({ role: 'assistant', content: botResponse });
-  saveHistory(history);
-}
 
-function clearUserHistory(userId) {
-  const history = loadHistory();
-  if (history[userId]) {
-    delete history[userId];
-    saveHistory(history);
+  async getUserHistory(userId) {
+    const userHistory = this.history[userId] || [];
+    const systemPrompt = await getSystemPrompt();
+    return [{ role: 'system', content: systemPrompt }, ...userHistory];
+  }
+
+  addUserMessage(userId, message) {
+    this.addMessage(userId, 'user', message);
+  }
+
+  addAssistantMessage(userId, message) {
+    this.addMessage(userId, 'assistant', message);
+  }
+
+  addSystemMessage(userId, message) {
+    this.addMessage(userId, 'system', message);
+  }
+
+  addMessage(userId, role, message) {
+    if (!this.history[userId]) {
+      this.history[userId] = [];
+    }
+    this.history[userId].push({ role, content: message });
+    this.saveHistory();
+  }
+
+  clearUserHistory(userId) {
+    if (this.history[userId]) {
+      delete this.history[userId];
+      this.saveHistory();
+    }
   }
 }
 
-module.exports = {
-  getUserHistory,
-  updateUserHistory,
-  clearUserHistory,
-};
+module.exports = ChatHistory;
