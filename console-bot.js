@@ -1,5 +1,4 @@
 import { createThread, runThread, addMessageToThread, getThreadMessages } from "./helpers/openai.js";
-import logger from "./helpers/logger.js";
 import readline from "readline";
 
 const rl = readline.createInterface({
@@ -18,31 +17,26 @@ const rl = readline.createInterface({
   });
 
   while (true) {
-    const userInput = await new Promise((resolve) => {
+    const userMessageInput = await new Promise((resolve) => {
       rl.question("You: ", resolve);
     });
 
-    if (["sair", "exit", "quit"].includes(userInput.toLowerCase())) {
-      logger.info("Encerrando a conversa.");
+    if (["sair", "exit", "quit"].includes(userMessageInput.toLowerCase())) {
       console.log("Encerrando a conversa.");
       rl.close();
       break;
     }
 
-    if (["limpar", "clear"].includes(userInput.toLowerCase())) {
+    if (["limpar", "clear"].includes(userMessageInput.toLowerCase())) {
       historyManager.clearUserHistory(userId);
-      logger.info("Histórico de conversa limpo.");
       console.log("Histórico de conversa limpo.");
       history = await historyManager.getUserHistory(userId);
       continue;
     }
 
-    logger.info(`Input from user ${userId}`);
-    await addMessageToThread(threadId, userInput);
+    await addMessageToThread(threadId, userMessageInput);
     await runThread(threadId);
-
     const messages = await getThreadMessages(threadId, 1);
     console.log(`\nElleo: ${messages.data[0].content[0].text.value}\n`);
-    logger.info('Bot response');
   }
 })();
