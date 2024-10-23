@@ -1,6 +1,18 @@
-import { Client, SlashCommandBuilder, Events, GatewayIntentBits, Partials, ChannelType } from "discord.js";
-import { createThread, runThread, addMessageToThread, getThreadMessages } from "./helpers/openai.js";
-import dotenv from "dotenv";
+import {
+  Client,
+  SlashCommandBuilder,
+  Events,
+  GatewayIntentBits,
+  Partials,
+  ChannelType
+} from 'discord.js';
+import {
+  createThread,
+  runThread,
+  addMessageToThread,
+  getThreadMessages
+} from './helpers/openai.js';
+import dotenv from 'dotenv';
 dotenv.config();
 
 const client = new Client({
@@ -10,26 +22,19 @@ const client = new Client({
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.DirectMessages
   ],
-  partials: [
-    Partials.Channel,
-    Partials.Message,
-  ]
+  partials: [Partials.Channel, Partials.Message]
 });
 
 client.once(Events.ClientReady, (c) => {
   console.log(`Bot is ready as ${c.user.id} :: ${c.user.username} [${c.user.tag}]`);
 
-  const ping = new SlashCommandBuilder()
-    .setName("ping")
-    .setDescription("Replies with Pong!");
+  const ping = new SlashCommandBuilder().setName('ping').setDescription('Replies with Pong!');
 
-  const emoji = new SlashCommandBuilder()
-    .setName("emoji")
-    .setDescription("Replies with an emoji!");
+  const emoji = new SlashCommandBuilder().setName('emoji').setDescription('Replies with an emoji!');
 
   const clearUserHistory = new SlashCommandBuilder()
-    .setName("clear-history")
-    .setDescription("Clear the chat history!");
+    .setName('clear-history')
+    .setDescription('Clear the chat history!');
 
   client.application.commands.create(ping);
   client.application.commands.create(emoji);
@@ -41,16 +46,16 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   const { commandName } = interaction;
 
-  if (commandName === "ping") {
-    await interaction.reply("Pong!");
+  if (commandName === 'ping') {
+    await interaction.reply('Pong!');
   }
 
-  if (commandName === "emoji") {
-    await interaction.reply("<:elleobot:1295449209197166613>");
+  if (commandName === 'emoji') {
+    await interaction.reply('<:elleobot:1295449209197166613>');
   }
 
-  if (commandName === "clear-history") {
-    await interaction.reply("Histórico de conversa limpo!");
+  if (commandName === 'clear-history') {
+    await interaction.reply('Histórico de conversa limpo!');
   }
 });
 
@@ -60,6 +65,8 @@ client.on(Events.MessageCreate, async (message) => {
   // accept only DMs (for now)
   if (message.channel.type !== ChannelType.DM) return;
 
+  await message.channel.sendTyping();
+
   const userId = message.author.id;
   const threadId = await createThread(userId);
 
@@ -68,7 +75,7 @@ client.on(Events.MessageCreate, async (message) => {
 
   const messages = await getThreadMessages(threadId, 1);
   const botResponse = messages.data[0].content[0].text.value;
-  message.reply(botResponse);
+  await message.reply(botResponse);
 });
 
 client.login(process.env.DISCORD_TOKEN);
