@@ -1,6 +1,7 @@
-const { google } = require("googleapis");
 const fs = require("fs");
 const path = require("path");
+const { google } = require("googleapis");
+const logger = require("./logger");
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -25,18 +26,22 @@ async function authorize() {
 
 async function getGoogleDocContent(auth, docId) {
   const docs = google.docs({ version: 'v1', auth });
-  const res = await docs.documents.get({
-    documentId: docId,
-  });
+  try {
+    const res = await docs.documents.get({
+      documentId: docId,
+    });
 
-  const content = res.data.body.content.map((element) => {
-    if (element.paragraph) {
-      return element.paragraph.elements.map((el) => el.textRun ? el.textRun.content : '').join('');
-    }
-    return '';
-  }).join('\n');
+    const content = res.data.body.content.map((element) => {
+      if (element.paragraph) {
+        return element.paragraph.elements.map((el) => el.textRun ? el.textRun.content : '').join('');
+      }
+      return '';
+    }).join('\n');
 
-  return content;
+    return content;
+  } catch (error) {
+    logger.error("Erro ao obter conteúdo do Google Doc: " + error);
+  }
 }
 
 module.exports = {

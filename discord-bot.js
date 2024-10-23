@@ -1,7 +1,6 @@
 const { Client, SlashCommandBuilder, Events, GatewayIntentBits, Partials, ChannelType } = require("discord.js");
-const { getBotResponse } = require("./openaiBot");
-const { getUserHistory, updateUserHistory } = require("./historyHelper");
-const { systemPrompt } = require("./prompt");
+const { getBotResponse } = require("./helpers/openai");
+const ChatHistory = require("./helpers/history");
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -18,6 +17,8 @@ const client = new Client({
   ]
 });
 
+const historyManager = new ChatHistory();
+
 client.once(Events.ClientReady, (c) => {
   console.log(`Bot is ready as ${c.user.id} :: ${c.user.username} [${c.user.tag}]`);
 
@@ -29,8 +30,13 @@ client.once(Events.ClientReady, (c) => {
     .setName("emoji")
     .setDescription("Replies with an emoji!");
 
+  const clearUserHistory = new SlashCommandBuilder()
+    .setName("clear-history")
+    .setDescription("Clear the chat history!");
+
   client.application.commands.create(ping);
   client.application.commands.create(emoji);
+  client.application.commands.create(clearUserHistory);
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
@@ -39,13 +45,16 @@ client.on(Events.InteractionCreate, async (interaction) => {
   const { commandName } = interaction;
 
   if (commandName === "ping") {
-    console.log("ping");
     await interaction.reply("Pong!");
   }
 
   if (commandName === "emoji") {
-    console.log("emoji");
     await interaction.reply("<:elleobot:1295449209197166613>");
+  }
+
+  if (commandName === "clear-history") {
+    historyManager.clearUserHistory(interaction.user.id);
+    await interaction.reply("Histórico de conversa limpo!");
   }
 });
 
@@ -55,16 +64,14 @@ client.on(Events.MessageCreate, async (message) => {
   // accept only DMs (for now)
   if (message.channel.type !== ChannelType.DM) return;
 
-  console.log("message from author:", message.author.id);
+  const userId = message.author.id;
+  let history = await historyManager.getUserHistory(userId);
 
-  const userHistory = getUserHistory(message.author.id, systemPrompt);
-  userHistory.push({ role: "user", content: message.content });
+  historyManager.addUserMessage(userId, message.content);
 
-  const botResponse = await getBotResponse(userHistory);
+  const botResponse = await getBotResponse(history);
   message.reply(botResponse);
-  userHistory.push({ role: "assistant", content: botResponse });
-
-  updateUserHistory(message.author.id, message.content, botResponse);
+  historyManager.addAssistantMessage(userId, botResponse);
 });
 
 client.login(process.env.DISCORD_TOKEN);

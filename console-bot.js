@@ -1,7 +1,6 @@
-const { getBotResponse } = require("./helpers/openai");
-const { getUserHistory, updateUserHistory, clearUserHistory } = require("./helpers/history");
-const { getSystemPrompt } = require("./helpers/prompt");
-const readline = require("readline");
+import { createThread, runThread, addMessageToThread, getThreadMessages } from "./helpers/openai.js";
+import logger from "./helpers/logger.js";
+import readline from "readline";
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -10,9 +9,13 @@ const rl = readline.createInterface({
 
 (async () => {
   const userId = "console_user";
-  const systemPrompt = await getSystemPrompt();
 
-  let {history, isFirstInteraction} = getUserHistory(userId, systemPrompt);
+  const threadId = await createThread(userId);
+  const messages = await getThreadMessages(threadId, 100, "asc");
+
+  messages.data.forEach(message => {
+    console.log(`${message.role === "user" ? "You" : "Elleo"}: ${message.content[0].text.value}`, "\n");
+  });
 
   while (true) {
     const userInput = await new Promise((resolve) => {
@@ -20,27 +23,26 @@ const rl = readline.createInterface({
     });
 
     if (["sair", "exit", "quit"].includes(userInput.toLowerCase())) {
+      logger.info("Encerrando a conversa.");
       console.log("Encerrando a conversa.");
       rl.close();
       break;
     }
 
-    if (["clear", "limpar"].includes(userInput.toLowerCase())) {
-      clearUserHistory(userId);
+    if (["limpar", "clear"].includes(userInput.toLowerCase())) {
+      historyManager.clearUserHistory(userId);
+      logger.info("Histórico de conversa limpo.");
       console.log("Histórico de conversa limpo.");
+      history = await historyManager.getUserHistory(userId);
       continue;
     }
 
-    if (!isFirstInteraction) {
-      history.push({ role: "system", content: "Continue the conversation from where we left off. Do not repeat the initial greeting or restart. Maintain the flow and context based on the previous interactions." });
-    }
+    logger.info(`Input from user ${userId}`);
+    await addMessageToThread(threadId, userInput);
+    await runThread(threadId);
 
-    history.push({ role: "user", content: userInput });
-
-    const botResponse = await getBotResponse(history);
-    console.log("Bot:", botResponse, "\n");
-    history.push({ role: "assistant", content: botResponse });
-
-    updateUserHistory(userId, userInput, botResponse);
+    const messages = await getThreadMessages(threadId, 1);
+    console.log(`\nElleo: ${messages.data[0].content[0].text.value}\n`);
+    logger.info('Bot response');
   }
 })();
