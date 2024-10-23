@@ -27,6 +27,10 @@ export class UserDatabase {
     return db.data.users.find(user => user.id === id);
   }
 
+  getUserByThreadId(threadId) {
+    return db.data.users.find(user => user.thread_id === threadId);
+  }
+
   async updateUser(id, newData) {
     const user = this.getUserById(id);
     if (user) {
