@@ -1,7 +1,6 @@
-const { Client, SlashCommandBuilder, Events, GatewayIntentBits, Partials, ChannelType } = require("discord.js");
-const { getBotResponse } = require("./helpers/openai");
-const ChatHistory = require("./helpers/history");
-const dotenv = require("dotenv");
+import { Client, SlashCommandBuilder, Events, GatewayIntentBits, Partials, ChannelType } from "discord.js";
+import { createThread, runThread, addMessageToThread, getThreadMessages } from "./helpers/openai.js";
+import dotenv from "dotenv";
 dotenv.config();
 
 const client = new Client({
@@ -16,8 +15,6 @@ const client = new Client({
     Partials.Message,
   ]
 });
-
-const historyManager = new ChatHistory();
 
 client.once(Events.ClientReady, (c) => {
   console.log(`Bot is ready as ${c.user.id} :: ${c.user.username} [${c.user.tag}]`);
@@ -53,7 +50,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 
   if (commandName === "clear-history") {
-    historyManager.clearUserHistory(interaction.user.id);
     await interaction.reply("Histórico de conversa limpo!");
   }
 });
@@ -65,13 +61,14 @@ client.on(Events.MessageCreate, async (message) => {
   if (message.channel.type !== ChannelType.DM) return;
 
   const userId = message.author.id;
-  let history = await historyManager.getUserHistory(userId);
+  const threadId = await createThread(userId);
 
-  historyManager.addUserMessage(userId, message.content);
+  await addMessageToThread(threadId, message.content);
+  await runThread(threadId);
 
-  const botResponse = await getBotResponse(history);
+  const messages = await getThreadMessages(threadId, 1);
+  const botResponse = messages.data[0].content[0].text.value;
   message.reply(botResponse);
-  historyManager.addAssistantMessage(userId, botResponse);
 });
 
 client.login(process.env.DISCORD_TOKEN);
