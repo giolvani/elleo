@@ -15,7 +15,9 @@ async function initializeDatabase() {
   }
 }
 
-await initializeDatabase();
+(async () => {
+  await initializeDatabase();
+})();
 
 export class UserDatabase {
   async addUser(id, data) {
@@ -24,11 +26,11 @@ export class UserDatabase {
   }
 
   getUserById(id) {
-    return db.data.users.find(user => user.id === id);
+    return db.data.users.find((user) => user.id === id);
   }
 
   getUserByThreadId(threadId) {
-    return db.data.users.find(user => user.thread_id === threadId);
+    return db.data.users.find((user) => user.thread_id === threadId);
   }
 
   async updateUser(id, newData) {
@@ -40,7 +42,7 @@ export class UserDatabase {
   }
 
   async removeUser(id) {
-    db.data.users = db.data.users.filter(user => user.id !== id);
+    db.data.users = db.data.users.filter((user) => user.id !== id);
     await db.write();
   }
 

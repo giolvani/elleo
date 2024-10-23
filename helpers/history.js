@@ -1,8 +1,8 @@
-const fs = require('fs');
-const path = require('path');
-const logger = require("./logger");
-const { getSystemPrompt } = require("./prompt");
-const dotenv = require("dotenv");
+import fs from 'fs';
+import path from 'path';
+import logger from './logger.js';
+import { getSystemPrompt } from './prompt.js';
+import dotenv from 'dotenv';
 dotenv.config();
 
 class ChatHistory {
@@ -22,7 +22,7 @@ class ChatHistory {
     try {
       return JSON.parse(data);
     } catch (error) {
-      logger.error("Erro ao analisar o JSON: " + error);
+      logger.error('Erro ao analisar o JSON: ' + error);
       return {};
     }
   }
@@ -65,4 +65,4 @@ class ChatHistory {
   }
 }
 
-module.exports = ChatHistory;
+export default ChatHistory;
