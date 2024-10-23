@@ -32,5 +32,5 @@ jobs:
           echo "OPENAI_API_KEY=${OPENAI_API_KEY}" > .env
           echo "ASSISTANT_ID=${ASSISTANT_ID}" >> .env
           git pull origin main
-          docker-compose up -d --build
+          docker compose up -d --build
         EOF
