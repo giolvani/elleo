@@ -4,6 +4,7 @@ import {
   addMessageToThread,
   getThreadMessages
 } from './helpers/openai.js';
+import { UserDatabase } from './helpers/userDatabase.js';
 import readline from 'readline';
 
 const rl = readline.createInterface({
@@ -14,10 +15,12 @@ const rl = readline.createInterface({
 (async () => {
   const userId = 'console_user';
 
-  const threadId = await createThread(userId);
+  let threadId = await createThread(userId);
   const messages = await getThreadMessages(threadId, 100, 'asc');
 
-  messages.data.forEach((message) => {
+  const userDatabase = new UserDatabase();
+
+  messages?.data.forEach((message) => {
     console.log(
       `${message.role === 'user' ? 'You' : 'Elleo'}: ${message.content[0].text.value}`,
       '\n'
@@ -29,13 +32,15 @@ const rl = readline.createInterface({
       rl.question('You: ', resolve);
     });
 
-    if (['sair', 'exit', 'quit'].includes(userMessageInput.toLowerCase())) {
+    if (['sair', 'exit'].includes(userMessageInput.toLowerCase())) {
       console.log('Encerrando a conversa.');
       rl.close();
       break;
     }
 
     if (['limpar', 'clear'].includes(userMessageInput.toLowerCase())) {
+      await userDatabase.backupUserId(userId);
+      threadId = await createThread(userId);
       console.log('Histórico de conversa limpo.');
       continue;
     }

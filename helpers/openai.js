@@ -16,7 +16,7 @@ export async function createThread(userId) {
     let threadId = null;
 
     const userDatabase = new UserDatabase();
-    const user = userDatabase.getUserById(userId);
+    const user = await userDatabase.getUserById(userId);
 
     if (!user || !user.thread_id) {
       const newThread = await client.beta.threads.create({
@@ -27,7 +27,7 @@ export async function createThread(userId) {
 
       logger.info(`New thread created for user ${userId}: ${newThread.id}`);
 
-      userDatabase.addUser(userId, { thread_id: newThread.id });
+      await userDatabase.addUser(userId, { thread_id: newThread.id });
       threadId = newThread.id;
     } else {
       logger.info(`Thread already exists for user ${userId}: ${user.thread_id}`);
@@ -46,7 +46,7 @@ export async function createThread(userId) {
 export async function addMessageToThread(threadId, userMessage) {
   try {
     const userDatabase = new UserDatabase();
-    const user = userDatabase.getUserByThreadId(threadId);
+    const user = await userDatabase.getUserByThreadId(threadId);
 
     const message = await client.beta.threads.messages.create(threadId, {
       role: 'user',
@@ -85,6 +85,11 @@ export async function getThreadMessages(threadId, limit = 20, order = 'desc') {
     );
     return await client.beta.threads.messages.list(threadId, { query: { limit, order } });
   } catch (error) {
+    if (error.status === 404) {
+      logger.error('Thread not found');
+      return null;
+    }
+
     logger.error(
       'Error getting thread messages: ' + (error.response ? error.response.data : error.message)
     );
@@ -107,7 +112,7 @@ export async function deleteThreadMessage(threadId, messageId) {
 export async function runThread(threadId) {
   try {
     const userDatabase = new UserDatabase();
-    const user = userDatabase.getUserByThreadId(threadId);
+    const user = await userDatabase.getUserByThreadId(threadId);
 
     logger.info(`Running thread ${threadId}`);
     const run = await client.beta.threads.runs.create(threadId, {
