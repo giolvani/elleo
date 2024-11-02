@@ -12,6 +12,7 @@ import {
   addMessageToThread,
   getThreadMessages
 } from './helpers/openai.js';
+import { UserDatabase } from './helpers/userDatabase.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -24,6 +25,8 @@ const client = new Client({
   ],
   partials: [Partials.Channel, Partials.Message]
 });
+
+const userDatabase = new UserDatabase();
 
 client.once(Events.ClientReady, (c) => {
   console.log(`Bot is ready as ${c.user.id} :: ${c.user.username} [${c.user.tag}]`);
@@ -55,6 +58,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 
   if (commandName === 'clear-history') {
+    await userDatabase.backupUserId(interaction.user.id);
     await interaction.reply('Histórico de conversa limpo!');
   }
 });
