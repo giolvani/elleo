@@ -12,3 +12,10 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id        String @id @unique
+  threadId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
