@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 import logger from './logger.js';
 import dotenv from 'dotenv';
-import { UserDatabase } from './userDatabase.js';
+import { UserDatabase } from './user.js';
 
 dotenv.config();
 
@@ -18,7 +18,7 @@ export async function createThread(userId) {
     const userDatabase = new UserDatabase();
     const user = await userDatabase.getUserById(userId);
 
-    if (!user || !user.thread_id) {
+    if (!user || !user.threadId) {
       const newThread = await client.beta.threads.create({
         metadata: {
           user_id: userId
@@ -27,11 +27,11 @@ export async function createThread(userId) {
 
       logger.info(`New thread created for user ${userId}: ${newThread.id}`);
 
-      await userDatabase.addUser(userId, { thread_id: newThread.id });
+      await userDatabase.addUser(userId, { threadId: newThread.id });
       threadId = newThread.id;
     } else {
-      logger.info(`Thread already exists for user ${userId}: ${user.thread_id}`);
-      threadId = user.thread_id;
+      logger.info(`Thread already exists for user ${userId}: ${user.threadId}`);
+      threadId = user.threadId;
     }
 
     return threadId;

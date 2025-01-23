@@ -13,7 +13,7 @@ import {
   addMessageToThread,
   getThreadMessages
 } from './helpers/openai.js';
-import { UserDatabase } from './helpers/userDatabase.js';
+import { UserDatabase } from './helpers/user.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
