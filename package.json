@@ -13,6 +13,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@prisma/client": "^6.2.1",
     "discord.js": "^14.17.3",
     "dotenv": "^16.4.5",
     "googleapis": "^144.0.0",
@@ -27,6 +28,7 @@
     "eslint-define-config": "^2.1.0",
     "eslint-plugin-prettier": "^5.2.1",
     "globals": "^15.11.0",
-    "prettier": "^3.3.3"
+    "prettier": "^3.3.3",
+    "prisma": "^6.2.1"
   }
 }
