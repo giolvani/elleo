@@ -14,6 +14,7 @@ import {
   getThreadMessages
 } from './helpers/openai.js';
 import { UserDatabase } from './helpers/user.js';
+import { scheduleTasks } from './helpers/scheduler.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -42,7 +43,7 @@ const commands = [
       option
         .setName('timezone')
         .setDescription(
-          'Your current timezone: "America/New_York". See more: https://timezonedb.com/time-zones'
+          'Your current timezone: "America/New_York". Full list: https://timezonedb.com/time-zones'
         )
         .setRequired(true)
     )
@@ -50,6 +51,8 @@ const commands = [
 
 client.once('ready', async () => {
   console.log(`Bot is ready as ${client.user.tag}`);
+
+  scheduleTasks(client);
 
   // Registrar comandos aqui, pois client.application.id estará disponível
   const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
@@ -77,11 +80,11 @@ client.on('interactionCreate', async (interaction) => {
   } else if (commandName === 'elleo-emoji') {
     await interaction.reply('<:elleobot:1295449209197166613>');
   } else if (commandName === 'elleo-clear-history') {
-    // userDatabase.clearUserHistory(interaction.user.id);
+    userDatabase.clearUserHistory(interaction.user.id);
     await interaction.reply('Chat history cleared!');
   } else if (commandName === 'elleo-timezone') {
     const timezone = interaction.options.getString('timezone');
-    //userDatabase.updateUser(interaction.user.id, { timezone });
+    userDatabase.updateUser(interaction.user.id, { timezone });
     await interaction.reply(`Your timezone has been set to: ${timezone}`);
   }
 });
