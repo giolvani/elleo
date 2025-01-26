@@ -27,7 +27,12 @@ export async function createThread(userId) {
 
       logger.info(`New thread created for user ${userId}: ${newThread.id}`);
 
-      await userDatabase.addUser(userId, { threadId: newThread.id });
+      if (!user) {
+        await userDatabase.addUser(userId, { threadId: newThread.id });
+      } else {
+        await userDatabase.updateUser(userId, { threadId: newThread.id });
+      }
+
       threadId = newThread.id;
     } else {
       logger.info(`Thread already exists for user ${userId}: ${user.threadId}`);
