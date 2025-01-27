@@ -31,13 +31,11 @@ const client = new Client({
 const userDatabase = new UserDatabase();
 
 const commands = [
-  new SlashCommandBuilder().setName('elleo-ping').setDescription('Replies with Pong!'),
-  new SlashCommandBuilder().setName('elleo-emoji').setDescription('Replies with an emoji!'),
+  new SlashCommandBuilder().setName('ping').setDescription('Replies with Pong!'),
+  new SlashCommandBuilder().setName('emoji').setDescription('Replies with an emoji!'),
+  new SlashCommandBuilder().setName('clear-history').setDescription('Clear the chat history!'),
   new SlashCommandBuilder()
-    .setName('elleo-clear-history')
-    .setDescription('Clear the chat history!'),
-  new SlashCommandBuilder()
-    .setName('elleo-timezone')
+    .setName('timezone')
     .setDescription('Configure your timezone.')
     .addStringOption((option) =>
       option
@@ -75,14 +73,14 @@ client.on('interactionCreate', async (interaction) => {
 
   const { commandName } = interaction;
 
-  if (commandName === 'elleo-ping') {
+  if (commandName === 'ping') {
     await interaction.reply('Pong!');
-  } else if (commandName === 'elleo-emoji') {
+  } else if (commandName === 'emoji') {
     await interaction.reply('<:elleobot:1295449209197166613>');
-  } else if (commandName === 'elleo-clear-history') {
+  } else if (commandName === 'clear-history') {
     userDatabase.clearUserHistory(interaction.user.id);
     await interaction.reply('Chat history cleared!');
-  } else if (commandName === 'elleo-timezone') {
+  } else if (commandName === 'timezone') {
     const timezone = interaction.options.getString('timezone');
     userDatabase.updateUser(interaction.user.id, { timezone });
     await interaction.reply(`Your timezone has been set to: ${timezone}`);
@@ -104,7 +102,7 @@ client.on('messageCreate', async (message) => {
 
   const messages = await getThreadMessages(threadId, 1);
   const botResponse = messages.data[0].content[0].text.value;
-  await message.reply(botResponse);
+  message.channel.send(botResponse);
 });
 
 client.login(process.env.DISCORD_TOKEN);
