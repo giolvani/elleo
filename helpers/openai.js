@@ -53,6 +53,10 @@ export async function addMessageToThread(threadId, userMessage, instructional = 
     const userDatabase = new UserDatabase();
     const user = await userDatabase.getUserByThreadId(threadId);
 
+    if (!user) {
+      throw new Error('User not found');
+    }
+
     const message = await client.beta.threads.messages.create(threadId, {
       role: 'user',
       content: userMessage,
