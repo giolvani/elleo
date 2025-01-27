@@ -10,27 +10,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up SSH
-      uses: webfactory/ssh-agent@v0.5.3
-      with:
-        ssh-private-key: ${{ secrets.DO_SSH_KEY }}
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.DO_SSH_KEY }}
 
-    - name: Deploy to DigitalOcean
-      env:
-        NODE_ENV: production
-        DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        ASSISTANT_ID: ${{ secrets.ASSISTANT_ID }}
-      run: |
-        ssh -o StrictHostKeyChecking=no root@${{ secrets.DO_SERVER_IP }} << EOF
-          cd /home/elleo/app
-          echo "NODE_ENV=${NODE_ENV}" > .env
-          echo "DISCORD_TOKEN=${DISCORD_TOKEN}" >> .env
-          echo "OPENAI_API_KEY=${OPENAI_API_KEY}" >> .env
-          echo "ASSISTANT_ID=${ASSISTANT_ID}" >> .env
-          git pull origin main
-          docker compose up -d --build
-        EOF
+      - name: Deploy to DigitalOcean
+        env:
+          NODE_ENV: production
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ASSISTANT_ID: ${{ secrets.ASSISTANT_ID }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          ssh -o StrictHostKeyChecking=no root@${{ secrets.DO_SERVER_IP }} << EOF
+            cd /home/elleo/app
+            echo "NODE_ENV=${NODE_ENV}" > .env
+            echo "DISCORD_TOKEN=${DISCORD_TOKEN}" >> .env
+            echo "OPENAI_API_KEY=${OPENAI_API_KEY}" >> .env
+            echo "ASSISTANT_ID=${ASSISTANT_ID}" >> .env
+            echo "DATABASE_URL=${DATABASE_URL}" >> .env
+            git pull origin main
+            docker compose up -d --build
+          EOF
