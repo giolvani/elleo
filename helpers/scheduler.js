@@ -12,30 +12,24 @@ export async function scheduleTasks(client) {
   try {
     const users = await prisma.user.findMany({
       where: {
-        //active: true, // Somente usuários ativos
-        timezone: { not: null } // Apenas usuários com timezone configurado
+        onboarding: true,
+        timezone: { not: null }
       }
     });
 
     const scheduledMessages = await prisma.scheduledMessage.findMany();
 
     users.forEach((user) => {
-      scheduledMessages.forEach(({ time, message }) => {
+      scheduledMessages.forEach(({ time, instruction, period }) => {
         const [hour, minute] = time.split(':');
         const timezone = user.timezone;
 
         schedule.scheduleJob({ hour, minute, tz: timezone }, () => {
-          sendMessage(user.id, message, client);
+          sendMessage(user.id, period, instruction, client);
         });
       });
 
-      schedule.scheduleJob({ hour: 15, minute: 57, tz: 'America/Sao_Paulo' }, () => {
-        sendMessage(
-          user.id,
-          'How’s your day going? Remember to take a break and enjoy your meal!',
-          client
-        );
-      });
+      logger.info(`Scheduled messages for user ${user.id} have been scheduled successfully!`);
     });
 
     logger.info('All tasks have been scheduled successfully!');
