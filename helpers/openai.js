@@ -48,7 +48,7 @@ export async function createThread(userId) {
   }
 }
 
-export async function addMessageToThread(threadId, userMessage) {
+export async function addMessageToThread(threadId, userMessage, instructional = false) {
   try {
     const userDatabase = new UserDatabase();
     const user = await userDatabase.getUserByThreadId(threadId);
@@ -57,7 +57,9 @@ export async function addMessageToThread(threadId, userMessage) {
       role: 'user',
       content: userMessage,
       metadata: {
-        user_id: user.id
+        user_id: user.id,
+        instructional: instructional ? 'true' : 'false',
+        timestamp: new Date().toISOString()
       }
     });
 
