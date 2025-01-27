@@ -27,6 +27,7 @@ model ScheduledMessage {
   id          String   @id @default(cuid())
   time        String //HH:mm
   instruction String
+  period      String   @default("random") //morning, midday, afternoon, evening or random
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
