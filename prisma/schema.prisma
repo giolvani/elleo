@@ -14,17 +14,25 @@ datasource db {
 }
 
 model User {
-  id        String   @id @unique
-  threadId  String
-  timezone  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @unique
+  threadId   String
+  timezone   String?
+  language   String   @default("en") //pt-BR
+  onboarding Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model ScheduledMessage {
-  id        String   @id @default(cuid())
-  time      String //HH:mm
-  message   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  time        String //HH:mm
+  instruction String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Config {
+  id    String @id @default(uuid())
+  key   String @unique
+  value String
 }
