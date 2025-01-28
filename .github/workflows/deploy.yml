@@ -34,5 +34,7 @@ jobs:
             echo "ASSISTANT_ID=${ASSISTANT_ID}" >> .env
             echo "DATABASE_URL=${DATABASE_URL}" >> .env
             git pull origin main
-            docker compose up -d --build
+            docker compose build
+            docker compose down
+            docker compose up -d
           EOF
